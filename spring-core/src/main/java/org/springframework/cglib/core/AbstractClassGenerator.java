@@ -88,12 +88,14 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 		private final WeakReference<ClassLoader> classLoader;
 
 		private final Predicate uniqueNamePredicate = new Predicate() {
+			@Override
 			public boolean evaluate(Object name) {
 				return reservedClassNames.contains(name);
 			}
 		};
 
 		private static final Function<AbstractClassGenerator, Object> GET_KEY = new Function<AbstractClassGenerator, Object>() {
+			@Override
 			public Object apply(AbstractClassGenerator gen) {
 				return gen.key;
 			}
@@ -106,6 +108,7 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 			this.classLoader = new WeakReference<ClassLoader>(classLoader);
 			Function<AbstractClassGenerator, Object> load =
 					new Function<AbstractClassGenerator, Object>() {
+						@Override
 						public Object apply(AbstractClassGenerator gen) {
 							Class klass = gen.generate(ClassLoaderData.this);
 							return gen.wrapCachedClass(klass);
@@ -202,8 +205,9 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 	 * @see DefaultNamingPolicy
 	 */
 	public void setNamingPolicy(NamingPolicy namingPolicy) {
-		if (namingPolicy == null)
+		if (namingPolicy == null) {
 			namingPolicy = DefaultNamingPolicy.INSTANCE;
+		}
 		this.namingPolicy = namingPolicy;
 	}
 
@@ -247,8 +251,9 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 	 * By default an instance of {@link DefaultGeneratorStrategy} is used.
 	 */
 	public void setStrategy(GeneratorStrategy strategy) {
-		if (strategy == null)
+		if (strategy == null) {
 			strategy = DefaultGeneratorStrategy.INSTANCE;
+		}
 		this.strategy = strategy;
 	}
 

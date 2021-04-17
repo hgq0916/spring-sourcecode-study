@@ -93,6 +93,7 @@ import org.springframework.cglib.core.WeakCacheKey;
 public class Enhancer extends AbstractClassGenerator {
 
 	private static final CallbackFilter ALL_ZERO = new CallbackFilter() {
+		@Override
 		public int accept(Method method) {
 			return 0;
 		}
@@ -582,7 +583,8 @@ public class Enhancer extends AbstractClassGenerator {
 		return super.generate(data);
 	}
 
-	protected ClassLoader getDefaultClassLoader() {
+	@Override
+    protected ClassLoader getDefaultClassLoader() {
 		if (superclass != null) {
 			return superclass.getClassLoader();
 		}
@@ -594,6 +596,7 @@ public class Enhancer extends AbstractClassGenerator {
 		}
 	}
 
+	@Override
 	protected ProtectionDomain getProtectionDomain() {
 		if (superclass != null) {
 			return ReflectUtils.getProtectionDomain(superclass);
@@ -650,11 +653,13 @@ public class Enhancer extends AbstractClassGenerator {
 		CollectionUtils.filter(methods, new RejectModifierPredicate(Constants.ACC_FINAL));
 	}
 
+	@Override
 	public void generateClass(ClassVisitor v) throws Exception {
 		Class sc = (superclass == null) ? Object.class : superclass;
 
-		if (TypeUtils.isFinal(sc.getModifiers()))
+		if (TypeUtils.isFinal(sc.getModifiers())) {
 			throw new IllegalArgumentException("Cannot subclass final class " + sc.getName());
+		}
 		List constructors = new ArrayList(Arrays.asList(sc.getDeclaredConstructors()));
 		filterConstructors(sc, constructors);
 
@@ -667,6 +672,7 @@ public class Enhancer extends AbstractClassGenerator {
 		getMethods(sc, interfaces, actualMethods, interfaceMethods, forcePublic);
 
 		List methods = CollectionUtils.transform(actualMethods, new Transformer() {
+			@Override
 			public Object transform(Object value) {
 				Method method = (Method) value;
 				int modifiers = Constants.ACC_FINAL
@@ -769,6 +775,7 @@ public class Enhancer extends AbstractClassGenerator {
 	 * @return newly created proxy instance
 	 * @throws Exception if something goes wrong
 	 */
+	@Override
 	protected Object firstInstance(Class type) throws Exception {
 		if (classOnly) {
 			return type;
@@ -778,6 +785,7 @@ public class Enhancer extends AbstractClassGenerator {
 		}
 	}
 
+	@Override
 	protected Object nextInstance(Object instance) {
 		EnhancerFactoryData data = (EnhancerFactoryData) instance;
 
@@ -1029,8 +1037,9 @@ public class Enhancer extends AbstractClassGenerator {
 			e.return_value();
 			e.end_method();
 		}
-		if (!classOnly && !seenNull && arguments == null)
+		if (!classOnly && !seenNull && arguments == null) {
 			throw new IllegalArgumentException("Superclass has no null constructors but no arguments were given");
+		}
 	}
 
 	private int[] getCallbackKeys() {
@@ -1048,11 +1057,13 @@ public class Enhancer extends AbstractClassGenerator {
 		e.load_this();
 		e.load_arg(0);
 		e.process_switch(keys, new ProcessSwitchCallback() {
+			@Override
 			public void processCase(int key, Label end) {
 				e.getfield(getCallbackField(key));
 				e.goTo(end);
 			}
 
+			@Override
 			public void processDefault() {
 				e.pop(); // stack height
 				e.aconst_null();
@@ -1066,6 +1077,7 @@ public class Enhancer extends AbstractClassGenerator {
 		final CodeEmitter e = ce.begin_method(Constants.ACC_PUBLIC, SET_CALLBACK, null);
 		e.load_arg(0);
 		e.process_switch(keys, new ProcessSwitchCallback() {
+			@Override
 			public void processCase(int key, Label end) {
 				e.load_this();
 				e.load_arg(1);
@@ -1074,6 +1086,7 @@ public class Enhancer extends AbstractClassGenerator {
 				e.goTo(end);
 			}
 
+			@Override
 			public void processDefault() {
 				// TODO: error?
 			}
@@ -1173,6 +1186,7 @@ public class Enhancer extends AbstractClassGenerator {
 		e.dup();
 		e.load_arg(0);
 		EmitUtils.constructor_switch(e, constructors, new ObjectSwitchCallback() {
+			@Override
 			public void processCase(Object key, Label end) {
 				MethodInfo constructor = (MethodInfo) key;
 				Type types[] = constructor.getSignature().getArgumentTypes();
@@ -1186,6 +1200,7 @@ public class Enhancer extends AbstractClassGenerator {
 				e.goTo(end);
 			}
 
+			@Override
 			public void processDefault() {
 				e.throw_exception(ILLEGAL_ARGUMENT_EXCEPTION, "Constructor not found");
 			}
@@ -1246,26 +1261,32 @@ public class Enhancer extends AbstractClassGenerator {
 
 		final Object[] state = new Object[1];
 		CallbackGenerator.Context context = new CallbackGenerator.Context() {
+			@Override
 			public ClassLoader getClassLoader() {
 				return Enhancer.this.getClassLoader();
 			}
 
+			@Override
 			public int getOriginalModifiers(MethodInfo method) {
 				return ((Integer) originalModifiers.get(method)).intValue();
 			}
 
+			@Override
 			public int getIndex(MethodInfo method) {
 				return ((Integer) indexes.get(method)).intValue();
 			}
 
+			@Override
 			public void emitCallback(CodeEmitter e, int index) {
 				emitCurrentCallback(e, index);
 			}
 
+			@Override
 			public Signature getImplSignature(MethodInfo method) {
 				return rename(method.getSignature(), ((Integer) positions.get(method)).intValue());
 			}
 
+			@Override
 			public void emitLoadArgsAndInvoke(CodeEmitter e, MethodInfo method) {
 				// If this is a bridge and we know the target was called from invokespecial,
 				// then we need to invoke_virtual w/ the bridge target instead of doing
@@ -1305,6 +1326,7 @@ public class Enhancer extends AbstractClassGenerator {
 				}
 			}
 
+			@Override
 			public CodeEmitter beginMethod(ClassEmitter ce, MethodInfo method) {
 				CodeEmitter e = EmitUtils.begin_method(ce, method);
 				if (!interceptDuringConstruction &&

@@ -99,6 +99,7 @@ abstract public class KeyFactory {
 
 
 	public static final Customizer CLASS_BY_NAME = new Customizer() {
+		@Override
 		public void customize(CodeEmitter e, Type type) {
 			if (type.equals(Constants.TYPE_CLASS)) {
 				e.invoke_virtual(Constants.TYPE_CLASS, GET_NAME);
@@ -107,11 +108,13 @@ abstract public class KeyFactory {
 	};
 
 	public static final FieldTypeCustomizer STORE_CLASS_AS_STRING = new FieldTypeCustomizer() {
+		@Override
 		public void customize(CodeEmitter e, int index, Type type) {
 			if (type.equals(Constants.TYPE_CLASS)) {
 				e.invoke_virtual(Constants.TYPE_CLASS, GET_NAME);
 			}
 		}
+		@Override
 		public Type getOutType(int index, Type type) {
 			if (type.equals(Constants.TYPE_CLASS)) {
 				return Constants.TYPE_STRING;
@@ -125,6 +128,7 @@ abstract public class KeyFactory {
 	 * This customizer uses {@link Type#getSort()} as a hash code.
 	 */
 	public static final HashCodeCustomizer HASH_ASM_TYPE = new HashCodeCustomizer() {
+		@Override
 		public boolean customize(CodeEmitter e, Type type) {
 			if (Constants.TYPE_TYPE.equals(type)) {
 				e.invoke_virtual(type, GET_SORT);
@@ -140,6 +144,7 @@ abstract public class KeyFactory {
 	 */
 	@Deprecated
 	public static final Customizer OBJECT_BY_CLASS = new Customizer() {
+		@Override
 		public void customize(CodeEmitter e, Type type) {
 			e.invoke_virtual(Constants.TYPE_OBJECT, GET_CLASS);
 		}
@@ -204,10 +209,12 @@ abstract public class KeyFactory {
 			super(SOURCE);
 		}
 
-		protected ClassLoader getDefaultClassLoader() {
+		@Override
+        protected ClassLoader getDefaultClassLoader() {
 			return keyInterface.getClassLoader();
 		}
 
+		@Override
 		protected ProtectionDomain getProtectionDomain() {
 			return ReflectUtils.getProtectionDomain(keyInterface);
 		}
@@ -245,14 +252,17 @@ abstract public class KeyFactory {
 			this.multiplier = multiplier;
 		}
 
+		@Override
 		protected Object firstInstance(Class type) {
 			return ReflectUtils.newInstance(type);
 		}
 
+		@Override
 		protected Object nextInstance(Object instance) {
 			return instance;
 		}
 
+		@Override
 		public void generateClass(ClassVisitor v) {
 			ClassEmitter ce = new ClassEmitter(v);
 

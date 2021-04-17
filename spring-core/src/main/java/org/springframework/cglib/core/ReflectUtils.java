@@ -579,20 +579,24 @@ public class ReflectUtils {
 		return new MethodInfo() {
 			private ClassInfo ci;
 
-			public ClassInfo getClassInfo() {
+			@Override
+            public ClassInfo getClassInfo() {
 				if (ci == null)
 					ci = ReflectUtils.getClassInfo(member.getDeclaringClass());
 				return ci;
 			}
 
+			@Override
 			public int getModifiers() {
 				return modifiers;
 			}
 
+			@Override
 			public Signature getSignature() {
 				return sig;
 			}
 
+			@Override
 			public Type[] getExceptionTypes() {
 				return ReflectUtils.getExceptionTypes(member);
 			}
